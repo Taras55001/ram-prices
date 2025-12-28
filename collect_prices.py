@@ -19,11 +19,20 @@ products = {
             "https://azerty.nl/product/corsair-vengeance-geheugen/5573534",
             "https://www.amazon.com.be/-/en/CORSAIR-Vengeance-6000MHz-Compatible-Computer/dp/B0CBRJ63RT/?th=1"
         ]
+    },
+    "Kingston_DDR5_5600": {
+        "name": "Kingston FURY Beast DDR5",
+        "urls": [
+            "https://azerty.nl/product/kingston-fury-beast-black-geheugen/4983206",
+            "https://www.amazon.com.be/-/en/Kingston-Beast-2x16GB-5600MT-Memory/dp/B0BD5PN65B/"
+        ]
     }
 }
 
 def fetch_price(url):
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
     resp = requests.get(url, headers=headers, timeout=15)
     soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -38,14 +47,20 @@ def fetch_price(url):
         tag = soup.select_one("span.price span.price")
         if not tag or not tag.contents:
             return None
-        price_text = tag.contents[0].replace(",-", ".00").replace(",", ".")
+
+        price_text = tag.contents[0]
+        price_text = price_text.replace(",-", ".00").replace(",", ".")
+
         return float(price_text)
 
     if not price_text:
         return None
 
+    # Виймаємо число типу 149,99 або 149.99
     match = re.search(r"[\d,.]+", price_text)
-    return float(match.group(0).replace(",", ".")) if match else None
+    if not match:
+        return None
+
 
 
 CSV_FILE = "ram_prices.csv"
@@ -54,7 +69,6 @@ if os.path.exists(CSV_FILE):
     df_history = pd.read_csv(CSV_FILE, parse_dates=["datetime"])
 else:
     df_history = pd.DataFrame(columns=["datetime", "product_id", "store", "price"])
-
 new_data = []
 
 for pid, meta in products.items():
@@ -62,14 +76,11 @@ for pid, meta in products.items():
         price = fetch_price(url)
         if price:
             new_data.append({
-                "datetime": datetime.now().isoformat(),
+                "datetime": datetime.now(),
                 "product_id": pid,
                 "store": url.split("/")[2],
                 "price": price
             })
-
 df_new = pd.DataFrame(new_data)
 df_all = pd.concat([df_history, df_new], ignore_index=True)
 df_all.to_csv(CSV_FILE, index=False)
-
-print("Prices updated")
