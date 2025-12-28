@@ -2,8 +2,8 @@ name: Daily RAM price update
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # кожен день о 06:00 UTC
-  workflow_dispatch:     # ручний запуск кнопкою
+    - cron: "0 15 * * *" 
+  workflow_dispatch:    
 
 jobs:
   update-prices:
