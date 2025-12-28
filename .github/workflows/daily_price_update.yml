@@ -2,7 +2,7 @@ name: Daily RAM price update
 
 on:
   schedule:
-    - cron: "45 16 * * *" 
+    - cron: "0 18 * * *" 
   workflow_dispatch:    
 
 jobs:
