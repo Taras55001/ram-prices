@@ -1,0 +1,35 @@
+name: Daily RAM price update
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # кожен день о 06:00 UTC
+  workflow_dispatch:     # ручний запуск кнопкою
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run price collector
+        run: |
+          python collect_prices.py
+
+      - name: Commit & push CSV
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add ram_prices.csv
+          git commit -m "Daily price update" || echo "No changes"
+          git push
